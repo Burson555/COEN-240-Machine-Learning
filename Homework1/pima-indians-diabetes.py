@@ -14,7 +14,7 @@
 
 import tensorflow as tf
 import numpy as np
-import random
+import time
 from sklearn.model_selection import train_test_split
 
 
@@ -34,20 +34,33 @@ class_diabetes = split_result[0]
 class_no_diabetes = split_result[1]
 
 # HERE I SHOULD PUT A LOOP
-SAMPLE_SIZE = 40
-sample_index_d = random.sample(range(class_diabetes.shape[0]), SAMPLE_SIZE)
-sample_index_nd = random.sample(range(class_no_diabetes.shape[0]), SAMPLE_SIZE)
-train_set_d = class_diabetes[sample_index_d]
-train_set_nd = class_no_diabetes[sample_index_nd]
-np.delete(class_diabetes, sample_index_d)
-np.delete(class_no_diabetes, sample_index_nd)
+SAMPLE_SIZE = 200
 
-target_val = sorted_diabetes[:, 9].reshape(-1, 1)
+#sample_index_d = random.sample(range(class_diabetes.shape[0]), SAMPLE_SIZE)
+#sample_index_nd = random.sample(range(class_no_diabetes.shape[0]), SAMPLE_SIZE)
+#train_set_d = class_diabetes[sample_index_d]
+#train_set_nd = class_no_diabetes[sample_index_nd]
+#np.delete(class_diabetes, sample_index_d)
+#np.delete(class_no_diabetes, sample_index_nd)
+#
+#target_val = sorted_diabetes[:, 9].reshape(-1, 1)
 
+target_d = class_diabetes[:, 9]
+class_diabetes = class_diabetes[:, 0:9]
+total_d = class_diabetes.shape[0]
+target_nd = class_no_diabetes[:, 9]
+class_no_diabetes = class_no_diabetes[:, 0:9]
+total_nd = class_no_diabetes.shape[0]
 
 # DEFINE RULES FOR MODEL
-X_train, X_test, t_train, t_test = \
-train_test_split(diabetes_plus_bias, target_val, test_size=0.2, random_state=32)
+X_train_d, X_test_d, t_train_d, t_test_d = \
+train_test_split(class_diabetes, target_d, test_size=(total_d-SAMPLE_SIZE)/total_d, random_state=time.time_ns()%(2**32))
+X_train_nd, X_test_nd, t_train_nd, t_test_nd = \
+train_test_split(class_no_diabetes, target_nd, test_size=(total_nd-SAMPLE_SIZE)/total_nd, random_state=time.time_ns()%(2**32))
+X_train = np.concatenate((X_train_d, X_train_nd))
+X_test = np.concatenate((X_test_d, X_test_nd))
+t_train = np.concatenate((t_train_d, t_train_nd)).reshape(-1, 1)
+t_test = np.concatenate((t_test_d, t_test_nd)).reshape(-1, 1)
 
 # n_train	= number of training samples
 # n_test    	= number of test samples
@@ -77,7 +90,7 @@ MSE_test = tf.div(tf.matmul(tf.transpose(y_test-t), y_test-t), n)
 # RUN THE MODEL
 count   = 0
 result  = 0
-for i in range(10):
+for i in range(100):
     with tf.Session() as sess:
     	MSE_train_val, w_val = \
     	sess.run([MSE, w], feed_dict={X: X_train, t: t_train, n:n_train})
