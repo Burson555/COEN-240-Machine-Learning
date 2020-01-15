@@ -1,5 +1,5 @@
 """
-% auther: burson555
+% author: burson555
 
 % linear regression model
 % pima indians diabetes prediction
@@ -17,15 +17,15 @@ import numpy as np
 import time
 from sklearn.model_selection import train_test_split
 
-
-# LOAD DATA
+# LOADING AND PROCESSING OF DATA
+# READ FROM FILE AND ADD BIAS
 attributes  = {"pregnancies", "glucose", "blood_pressure", "bmi", "insulin_level", "age", "attribute7", "attribute8"}
 file_path   = "/Users/bosen/Library/Mobile Documents/com~apple~CloudDocs/Portal/COEN 240/Assignment/Homework1/pima-indians-diabetes.csv"
 # file_path = ""
 diabetes_raw = np.genfromtxt(file_path, delimiter=',')
-# N = total number of samples
-N = diabetes_raw.shape[0]
+N = diabetes_raw.shape[0] # N = total number of samples
 diabetes_plus_bias = np.c_[np.ones((N,1)), diabetes_raw]
+# SPLIT DIABETES AND NO_DIABETES GROUPS BASED ON TARGET VALUE
 columnIndex = 9
 target_column = diabetes_plus_bias[:,columnIndex]
 sorted_diabetes = diabetes_plus_bias[target_column.argsort()[::-1]]
@@ -33,67 +33,65 @@ split_result = np.split(sorted_diabetes, np.where(np.diff(sorted_diabetes[:,9]))
 class_diabetes = split_result[0]
 class_no_diabetes = split_result[1]
 
+# PREVIOUS AND FAILED ATTEMPT TO SPLIT OUT TARGETS
 #sample_index_d = random.sample(range(class_diabetes.shape[0]), SAMPLE_SIZE)
 #sample_index_nd = random.sample(range(class_no_diabetes.shape[0]), SAMPLE_SIZE)
 #train_set_d = class_diabetes[sample_index_d]
 #train_set_nd = class_no_diabetes[sample_index_nd]
 #np.delete(class_diabetes, sample_index_d)
 #np.delete(class_no_diabetes, sample_index_nd)
-#
 #target_val = sorted_diabetes[:, 9].reshape(-1, 1)
 
+# SPLIT OUT TARGETS FROM ATTRIBUTES
 target_d = class_diabetes[:, 9]
 class_diabetes = class_diabetes[:, 0:9]
-total_d = class_diabetes.shape[0]
+num_d = class_diabetes.shape[0]
 target_nd = class_no_diabetes[:, 9]
 class_no_diabetes = class_no_diabetes[:, 0:9]
-total_nd = class_no_diabetes.shape[0]
+num_nd = class_no_diabetes.shape[0]
 
-# HERE I SHOULD PUT A LOOP
+# TRY DIFFERENT SAMPLE SIZE
 for SAMPLE_SIZE in range(40, 240, 40):
-    
-    # DEFINE RULES FOR MODEL
-    X_train_d, X_test_d, t_train_d, t_test_d = \
-    train_test_split(class_diabetes, target_d, test_size=(total_d-SAMPLE_SIZE)/total_d, random_state=time.time_ns()%(2**32))
-    X_train_nd, X_test_nd, t_train_nd, t_test_nd = \
-    train_test_split(class_no_diabetes, target_nd, test_size=(total_nd-SAMPLE_SIZE)/total_nd, random_state=time.time_ns()%(2**32))
-    X_train = np.concatenate((X_train_d, X_train_nd))
-    X_test = np.concatenate((X_test_d, X_test_nd))
-    t_train = np.concatenate((t_train_d, t_train_nd)).reshape(-1, 1)
-    t_test = np.concatenate((t_test_d, t_test_nd)).reshape(-1, 1)
-    
-    # num_train	= number of training samples
-    # num_test    	= number of test samples
-    # m 		= number of attributes
-    num_train,m 	= X_train.shape
-    num_test,m 	= X_test.shape
-    
-    # define the tensors
-    X   = tf.placeholder(tf.float64, shape = (None, m), name = "X")
-    t   = tf.placeholder(tf.float64, shape = (None, 1), name = "t")
-    n   = tf.placeholder(tf.float64, name = "n")
-    XT  = tf.transpose(X)
-    w   = tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT, X)), XT), t)
-    # predicted value
-    y_train   = tf.round(tf.matmul(X, w))
-    
-    # mean-squared error of the prediction for TRAINING set
-    #MSE     = tf.div(tf.matmul(tf.transpose(y-t), y-t), n)
-    w_star  = tf.placeholder(tf.float64, shape = (m, 1), name = "w_star")
-    y_test  = tf.round(tf.matmul(X, w_star))
-    
-    # RUN THE MODEL
+    # VARIABLES FOR STATISTICS
     count   = 0
     result  = 0
+    # RUN 1000 EXPERIMENTS
     for i in range(100):
+        # MERGE TWO SUBSETS INTO FINAL TRAINING SET 
+        X_train_d, X_test_d, t_train_d, t_test_d = \
+        train_test_split(class_diabetes, target_d, test_size=(num_d-SAMPLE_SIZE)/num_d, random_state=time.time_ns()%(2**32))
+        X_train_nd, X_test_nd, t_train_nd, t_test_nd = \
+        train_test_split(class_no_diabetes, target_nd, test_size=(num_nd-SAMPLE_SIZE)/num_nd, random_state=time.time_ns()%(2**32))
+        X_train = np.concatenate((X_train_d, X_train_nd))
+        X_test = np.concatenate((X_test_d, X_test_nd))
+        t_train = np.concatenate((t_train_d, t_train_nd)).reshape(-1, 1)
+        t_test = np.concatenate((t_test_d, t_test_nd)).reshape(-1, 1)
+        # DEFINE RULE AND VARIABLES FOR COMPUTATION        
+        # num_train	= number of training samples
+        # num_test  = number of test samples
+        # m         = number of attributes
+        num_train,  m 	= X_train.shape
+        num_test,   m   = X_test.shape
+        # VARIABLES WITHIN THE FORMULA
+        X   = tf.placeholder(tf.float64, shape = (None, m), name = "X")
+        t   = tf.placeholder(tf.float64, shape = (None, 1), name = "t")
+        n   = tf.placeholder(tf.float64, name = "n")
+        XT  = tf.transpose(X)
+        w   = tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT, X)), XT), t)
+        # PREDICTED VALUE
+        y_train   = tf.round(tf.matmul(X, w))
+        # VARIABLES FOR THE TEST SET
+        w_star  = tf.placeholder(tf.float64, shape = (m, 1), name = "w_star")
+        y_test  = tf.round(tf.matmul(X, w_star))
+        # RUN THE MODEL
         with tf.Session() as sess:
-        	y_train_val, w_val = \
-        	sess.run([y_train, w], feed_dict={X: X_train, t: t_train, n:num_train})
-        	y_test_val,        = \
-        	sess.run([y_test], feed_dict={X: X_test, t: t_test, n:num_test, w_star:w_val})
+            	y_train_val, w_val = \
+            	sess.run([y_train, w], feed_dict={X: X_train, t: t_train, n:num_train})
+            	y_test_val,        = \
+            	sess.run([y_test], feed_dict={X: X_test, t: t_test, n:num_test, w_star:w_val})
         num_match = np.count_nonzero(np.equal(y_test_val, t_test))
         result  = result + num_match/num_test
         count   = count + 1
-        
+    # RETURN THE AVERAGE RESULT OF THE 1000 EXPERIMENTS
     print("The prediction accuracy rate on %d independent experiments is %.4f" % (count, result/count))
     print("TRAINING SIZE: %d\n" % (SAMPLE_SIZE*2))
