@@ -3,6 +3,7 @@
 
 % linear regression model
 % pima indians diabetes prediction
+%   Look at line 57 and 59 to see how we define important hyperparameters
 %	The Pima Indians diabetes data set (pima-indians-diabetes.xlsx) 
 	is a data set used to diagnostically predict whether or not a patient 
 	has diabetes, based on certain diagnostic measurements included in the dataset. 
@@ -14,8 +15,9 @@
 
 import tensorflow as tf
 import numpy as np
-import time
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import time
 
 # LOADING AND PROCESSING OF DATA
 # READ FROM FILE AND ADD BIAS
@@ -51,12 +53,14 @@ class_no_diabetes = class_no_diabetes[:, 0:9]
 num_nd = class_no_diabetes.shape[0]
 
 # TRY DIFFERENT SAMPLE SIZE
+samples = []
+results = []
 for SAMPLE_SIZE in range(40, 240, 40):
     # VARIABLES FOR STATISTICS
-    count   = 0
+    COUNT   = 1000
     result  = 0
     # RUN 1000 EXPERIMENTS
-    for i in range(100):
+    for i in range(COUNT):
         # MERGE TWO SUBSETS INTO FINAL TRAINING SET 
         X_train_d, X_test_d, t_train_d, t_test_d = \
         train_test_split(class_diabetes, target_d, test_size=(num_d-SAMPLE_SIZE)/num_d, random_state=time.time_ns()%(2**32))
@@ -66,32 +70,49 @@ for SAMPLE_SIZE in range(40, 240, 40):
         X_test = np.concatenate((X_test_d, X_test_nd))
         t_train = np.concatenate((t_train_d, t_train_nd)).reshape(-1, 1)
         t_test = np.concatenate((t_test_d, t_test_nd)).reshape(-1, 1)
-        # DEFINE RULE AND VARIABLES FOR COMPUTATION        
-        # num_train	= number of training samples
-        # num_test  = number of test samples
-        # m         = number of attributes
-        num_train,  m 	= X_train.shape
-        num_test,   m   = X_test.shape
-        # VARIABLES WITHIN THE FORMULA
-        X   = tf.placeholder(tf.float64, shape = (None, m), name = "X")
-        t   = tf.placeholder(tf.float64, shape = (None, 1), name = "t")
-        n   = tf.placeholder(tf.float64, name = "n")
-        XT  = tf.transpose(X)
-        w   = tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT, X)), XT), t)
-        # PREDICTED VALUE
-        y_train   = tf.round(tf.matmul(X, w))
-        # VARIABLES FOR THE TEST SET
-        w_star  = tf.placeholder(tf.float64, shape = (m, 1), name = "w_star")
-        y_test  = tf.round(tf.matmul(X, w_star))
-        # RUN THE MODEL
-        with tf.Session() as sess:
-            	y_train_val, w_val = \
-            	sess.run([y_train, w], feed_dict={X: X_train, t: t_train, n:num_train})
-            	y_test_val,        = \
-            	sess.run([y_test], feed_dict={X: X_test, t: t_test, n:num_test, w_star:w_val})
+        # CALCULATE, ACCELERATED BY REPLACING TENSORFLOW WITH NUMPY
+        temp = X_train.transpose()
+        w_val = np.linalg.inv(temp.dot(X_train)).dot(temp).dot(t_train)
+        y_test_val = np.rint(X_test.dot(w_val))
+#        ######################################################################
+#        # JUST FOUND OUT WE DON'T HAVE TO USE TENSORFLOW
+#        # numpy CAN HANDLE EVERYTHING, AND IN A EVEN FASTER MANNER
+#        # DEFINE RULE AND VARIABLES FOR COMPUTATION        
+#        # num_train	= number of training samples
+#        # num_test  = number of test samples
+#        # m         = number of attributes
+#        num_train,  m 	= X_train.shape
+#        num_test       = X_test.shape[0]
+#        # VARIABLES WITHIN THE FORMULA
+#        X   = tf.placeholder(tf.float64, shape = (None, m), name = "X")
+#        t   = tf.placeholder(tf.float64, shape = (None, 1), name = "t")
+#        n   = tf.placeholder(tf.float64, name = "n")
+#        XT  = tf.transpose(X)
+#        w   = tf.matmul(tf.matmul(tf.matrix_inverse(tf.matmul(XT, X)), XT), t)
+#        # PREDICTED VALUE
+#        y_train   = tf.round(tf.matmul(X, w))
+#        # VARIABLES FOR THE TEST SET
+#        w_star  = tf.placeholder(tf.float64, shape = (m, 1), name = "w_star")
+#        y_test  = tf.round(tf.matmul(X, w_star))
+#        # RUN THE MODEL
+#        with tf.Session() as sess:
+#            	y_train_val, w_val = \
+#            	sess.run([y_train, w], feed_dict={X: X_train, t: t_train, n:num_train})
+#            	y_test_val,        = \
+#            	sess.run([y_test], feed_dict={X: X_test, t: t_test, n:num_test, w_star:w_val})
+#        ######################################################################
+        num_test       = X_test.shape[0]
         num_match = np.count_nonzero(np.equal(y_test_val, t_test))
         result  = result + num_match/num_test
-        count   = count + 1
     # RETURN THE AVERAGE RESULT OF THE 1000 EXPERIMENTS
-    print("The prediction accuracy rate on %d independent experiments is %.4f" % (count, result/count))
+    result_averaged = result/COUNT
+    results.append(result_averaged)
+    samples.append(SAMPLE_SIZE)
+    print("The prediction accuracy rate on %d independent experiments is %.4f" % (COUNT, result_averaged))
     print("TRAINING SIZE: %d\n" % (SAMPLE_SIZE*2))
+# PLOTTING
+plt.plot(samples, results)
+plt.xlabel('x - SAMPLE_SIZE') 
+plt.ylabel('y - ACCURACY')
+plt.title('PIMA INDIANS DIABETES')
+plt.show() 
