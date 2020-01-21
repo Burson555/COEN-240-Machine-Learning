@@ -3,7 +3,6 @@
 
 % linear regression model
 % pima indians diabetes prediction
-%   Look at line 57 and 59 to see how we define important hyperparameters
 %	The Pima Indians diabetes data set (pima-indians-diabetes.xlsx) 
 	is a data set used to diagnostically predict whether or not a patient 
 	has diabetes, based on certain diagnostic measurements included in the dataset. 
