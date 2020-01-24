@@ -20,36 +20,59 @@ import random
 import sys
 import matplotlib.pyplot as plt
 
-def calculateCenter(X, labels):
-    print("haha")
-    return None
-
-def finMinDistance(point, centers):
-    index = 0
-    min_distance = sys.float_info.max
-    for i in centers:
-        
-        if ()
-        
-def calculateDistance(point, target):
-    pass
-    
-    
-def assignCenter(X, centers):
-    new_X = []
-    for i in centers:
-        new_X.append([])
-    for j in X:
-        for i in j:
-            index, distace = finMinDistance(point, centers)
-            new_X[index].append(i)
-    return new_X
-
+#CHECKED
 def initializeCenter(X, centers):
+    attr_max = np.zeros((NUM_COLUMN, 1))
+    attr_min = np.zeros((NUM_COLUMN, 1))
+    for i in range(NUM_COLUMN):
+        attr_val = X[:, i]
+        attr_max[i] = np.amax(attr_val)
+        attr_min[i] = np.amin(attr_val)
     for center in centers:
         for i in range(X.shape[1]):
-            attr_val = X[:, i]
-            center[i] = random.uniform(np.amin(attr_val), np.amax(attr_val))
+            center[i][0] = random.uniform(attr_min[i], attr_max[i])
+    
+# X is a list of lists, where each component list represents a cluster
+def assignCenter(X, centers):
+    new_X = []
+    for i in range(NUM_CENTER):
+        new_X.append([])
+    内啥 = 0
+    for cluster in X:
+        for point in cluster:
+            point = point.reshape(4,1)
+            index, min_distance = findCorresCenter(point, centers)
+            new_X[index].append(point)
+            内啥 = 内啥 + min_distance
+    return new_X, 内啥
+
+def findCorresCenter(point, centers):
+    index = 0
+    min_distance = np.linalg.norm(point-centers[0])**2
+    for i in range(len(centers)):
+        temp = np.linalg.norm(point-centers[i])**2
+        if (temp < min_distance):
+            temp = min_distance
+            index = i
+    return index, min_distance
+
+def calculateCenter(X, centers):
+    new_centers = []
+    for i in range(NUM_CENTER):
+        cluster = X[i]
+        cluster_center = np.zeros((NUM_COLUMN, 1))
+        if (len(cluster) == 0):
+            new_centers.append(centers[i])
+            continue
+        for i in range(NUM_COLUMN):
+            cluster = np.array(cluster)
+            cluster = cluster.reshape(cluster.shape[0], NUM_COLUMN)
+            attr_val = cluster[:, i]
+            cluster_center[i][0] = np.mean(attr_val)
+        new_centers.append(cluster_center)
+#        print(cluster)
+#        print(cluster_center)
+    return new_centers
 
 # READ FROM ORIGINAL XLS FILE INTO NUMPY ARRAY
 file_path_xls = "/Users/bosen/Library/Mobile Documents/com~apple~CloudDocs/Portal/COEN 240/Assignment/HW02/Iris.xls"
@@ -58,22 +81,28 @@ iris_xls = pd.read_excel(file_path_xls)
 iris_xls.to_csv(file_path_csv, index = None, header=False)
 iris_raw = np.genfromtxt(file_path_csv, delimiter=',')[:, 1:]
 del(iris_xls)
-num_column  = iris_raw.shape[1]
-num_row     = iris_raw.shape[0]
-X = iris_raw[:, :num_column-1]
-t = iris_raw[:, num_column-1].reshape(num_row,1)
+NUM_ROW     = iris_raw.shape[0]
+NUM_COLUMN  = iris_raw.shape[1]-1
+X = iris_raw[:, :NUM_COLUMN]
+t = iris_raw[:, NUM_COLUMN].reshape(NUM_ROW,1)
 
 # DEFINE HYPERPARAMETERS AND INITIALIZE CENTERS
 EPSILON = 10**(-5)
 NUM_CENTER = 3
-NUM_ITERATION = 6
+NUM_ITERATION = 15
 centers = []
 for i in range(NUM_CENTER):
-    center = np.zeros((X.shape[1], 1))
+    center = np.zeros((NUM_COLUMN, 1))
     centers.append(center)
 initializeCenter(X, centers)
+#print(centers)
+X = np.array([X])
 
 # ALTERNATES BETWEEN ASSIGNMENT AND CLUSTER-CENTER UPDATE
 for ITERATION in range(1, NUM_ITERATION+1):
-    assignCenter(X, centers)
-    calculateCenter(X, centers)
+    X, 内啥 = assignCenter(X, centers) # THE FORM OF X
+#    print(内啥)
+    centers = calculateCenter(X, centers)
+#    print(centers)
+          
+print("DONE")
