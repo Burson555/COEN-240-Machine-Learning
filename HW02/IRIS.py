@@ -99,7 +99,7 @@ X = np.array([X])
 # ALTERNATES BETWEEN ASSIGNMENT AND CLUSTER-CENTER UPDATE
 while(True):
     NUM_ITERATION = NUM_ITERATION+1
-    X, new_M = assignCenter(X, centers) # THE FORM OF X
+    X, new_M = assignCenter(X, centers)
     if (M - new_M < EPSILON):
         break
     M = new_M
