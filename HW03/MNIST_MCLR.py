@@ -21,7 +21,7 @@ x_test = np.reshape(x_testo,(10000,28*28))
 x_train, x_test = x_train / 255.0, x_test / 255.0
 
 # MODEL CREATION
-logreg = LogisticRegression(solver='saga', multi_class='multinomial', max_iter = 3, verbose=2)
+logreg = LogisticRegression(solver='saga', multi_class='multinomial', max_iter = 100, verbose=2)
 
 # DATA CHECKING
 #import matplotlib.pyplot as plt
