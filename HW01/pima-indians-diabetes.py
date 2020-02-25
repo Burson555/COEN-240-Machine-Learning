@@ -17,11 +17,12 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import time
+import random
 
 # LOADING AND PROCESSING OF DATA
 # READ FROM FILE AND ADD BIAS
 attributes  = {"pregnancies", "glucose", "blood_pressure", "bmi", "insulin_level", "age", "attribute7", "attribute8"}
-file_path   = "/Users/bosen/Library/Mobile Documents/com~apple~CloudDocs/Portal/COEN 240/Assignment/Homework1/pima-indians-diabetes.csv"
+file_path   = "/Users/bosen/Library/Mobile Documents/com~apple~CloudDocs/Portal/COEN 240/Assignment/HW01/pima-indians-diabetes.csv"
 # file_path = ""
 diabetes_raw = np.genfromtxt(file_path, delimiter=',')
 N = diabetes_raw.shape[0] # N = total number of samples
@@ -35,13 +36,13 @@ class_diabetes = split_result[0]
 class_no_diabetes = split_result[1]
 
 # PREVIOUS AND FAILED ATTEMPT TO SPLIT OUT TARGETS
-#sample_index_d = random.sample(range(class_diabetes.shape[0]), SAMPLE_SIZE)
-#sample_index_nd = random.sample(range(class_no_diabetes.shape[0]), SAMPLE_SIZE)
-#train_set_d = class_diabetes[sample_index_d]
-#train_set_nd = class_no_diabetes[sample_index_nd]
-#np.delete(class_diabetes, sample_index_d)
-#np.delete(class_no_diabetes, sample_index_nd)
-#target_val = sorted_diabetes[:, 9].reshape(-1, 1)
+sample_index_d = random.sample(range(class_diabetes.shape[0]), 80)
+sample_index_nd = random.sample(range(class_no_diabetes.shape[0]), 80)
+train_set_d = class_diabetes[sample_index_d]
+train_set_nd = class_no_diabetes[sample_index_nd]
+np.delete(class_diabetes, sample_index_d)
+np.delete(class_no_diabetes, sample_index_nd)
+target_val = sorted_diabetes[:, 9].reshape(-1, 1)
 
 # SPLIT OUT TARGETS FROM ATTRIBUTES
 target_d = class_diabetes[:, 9]
