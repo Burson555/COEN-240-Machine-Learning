@@ -97,16 +97,16 @@ result_image.save("result.png")
 del(i, ones, result_image, result_array)
 
 # OUTPUT EVALUATION ------------------------------------------
-num_positive = np.count_nonzero(result_s)
-num_negative = test_image_flat.shape[0] - num_positive
+num_s = np.count_nonzero(result_s)
+num_b = test_image_flat.shape[0] - num_s
 true_match_s = np.count_nonzero(np.multiply(test_label_s, result_s))
 true_match_b = np.count_nonzero(np.multiply(1-test_label_s, 1-result_s))
 false_match_s = np.count_nonzero(np.multiply(1-test_label_s, result_s))
 false_match_b = np.count_nonzero(np.multiply(test_label_s, 1-result_s))
-tpr = true_match_s / num_positive
-tnr = true_match_b / num_negative
-fpr = false_match_s / num_positive
-fnr = false_match_b / num_negative
+tpr = true_match_s / num_s
+tnr = true_match_b / num_b
+fpr = false_match_b / num_b
+fnr = false_match_s / num_s
 print("\n\n")
 print("TPR: %.8f\nTNR: %.8f" % (tpr, tnr))
 print("FPR: %.8f\nFNR: %.8f" % (fpr, fnr))
