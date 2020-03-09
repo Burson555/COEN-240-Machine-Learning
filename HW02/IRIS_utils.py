@@ -9,7 +9,12 @@ Created on Sun Mar  8 14:13:25 2020
 import numpy as np
 import random
 
-def initializeCenter(X, centers):
+def initializeCenter(X, NUM_CENTER):
+    NUM_COLUMN = X.shape[1]
+    centers = []
+    for i in range(NUM_CENTER):
+        center = np.zeros((NUM_COLUMN, 1))
+        centers.append(center)
     NUM_COLUMN = centers[0].shape[0]
     attr_max = np.zeros((NUM_COLUMN, 1))
     attr_min = np.zeros((NUM_COLUMN, 1))
@@ -17,9 +22,12 @@ def initializeCenter(X, centers):
         attr_val = X[:, i]
         attr_max[i] = np.amax(attr_val)
         attr_min[i] = np.amin(attr_val)
+    # print(attr_max)
+    # print(attr_min)
     for center in centers:
         for i in range(X.shape[1]):
             center[i][0] = random.uniform(attr_min[i], attr_max[i])
+    return centers
     
 # X is a list of lists, where each component list represents a cluster
 def assignCenter(X, centers):
@@ -31,7 +39,7 @@ def assignCenter(X, centers):
     M = 0
     for cluster in X:
         for point in cluster:
-            point = point.reshape(NUM_COLUMN,1)
+            point = point.reshape(NUM_COLUMN, 1)
             index, min_distance = findCorresCenter(point, centers)
             new_X[index].append(point)
             M = M + min_distance

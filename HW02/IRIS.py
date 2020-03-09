@@ -14,7 +14,7 @@
     Comment on the result. Attach the code at the end of the homework.
 """
 # ENVIRONMENT SETTING
-from IRIS_utils import *
+from IRIS_utils import np, initializeCenter, assignCenter, calculateCenter
 import sys
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -37,13 +37,8 @@ M_list = []
 EPSILON = 10**(-5)
 NUM_CENTER = 3
 NUM_ITERATION = 0
-centers = []
-for i in range(NUM_CENTER):
-    center = np.zeros((NUM_COLUMN, 1))
-    centers.append(center)
-initializeCenter(X, centers)
+centers = initializeCenter(X, NUM_CENTER)
 X = np.array([X])
-del(center, i)
 
 # ALTERNATES BETWEEN ASSIGNMENT AND CLUSTER-CENTER UPDATE
 while(True):
