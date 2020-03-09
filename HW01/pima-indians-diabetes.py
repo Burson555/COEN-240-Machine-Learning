@@ -110,6 +110,7 @@ for SAMPLE_SIZE in range(40, 240, 40):
     samples.append(SAMPLE_SIZE)
     print("The prediction accuracy rate on %d independent experiments is %.4f" % (COUNT, result_averaged))
     print("TRAINING SIZE: %d\n" % (SAMPLE_SIZE*2))
+    
 # PLOTTING
 plt.plot(samples, results)
 plt.xlabel('x - SAMPLE_SIZE') 
